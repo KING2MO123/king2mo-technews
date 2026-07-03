@@ -48,11 +48,14 @@
 <!-- Navbar -->
 <header class="sticky top-0 z-40 backdrop-blur-xl bg-white/85 dark:bg-[#080d1a]/90 border-b border-slate-200 dark:border-slate-800/70 shadow-sm">
   <nav class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
-    <a href="#" class="flex items-center gap-2 font-bold text-xl shrink-0">
-      <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
-        <i data-lucide="zap" class="w-4 h-4 text-white"></i>
+    <a href="#" class="flex items-center gap-2.5 shrink-0 group">
+      <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-indigo-600 shadow-lg shadow-brand-500/25 group-hover:shadow-brand-500/40 transition-all">
+        <i data-lucide="cpu" class="w-5 h-5 text-white group-hover:scale-110 transition-transform"></i>
       </div>
-      <span class="hidden sm:inline">KING2MO</span><span class="text-brand-500">TECHNEWS</span>
+      <div class="hidden sm:flex flex-col leading-none">
+        <span class="font-display font-black text-[17px] tracking-wide text-slate-900 dark:text-white uppercase">King2mo</span>
+        <span class="text-[9px] font-extrabold tracking-[0.25em] bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-indigo-400 mt-0.5">TECHNEWS</span>
+      </div>
     </a>
     <div class="hidden md:flex items-center gap-1.5 ml-3">
       <button data-filter="all"     class="chip active px-3.5 py-1.5 rounded-full border border-transparent text-sm font-medium">Tout</button>
@@ -192,9 +195,14 @@
 <footer class="mt-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
   <div class="max-w-7xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-3">
     <div>
-      <a href="#" class="flex items-center gap-2 font-bold text-lg">
-        <div class="w-7 h-7 rounded-md bg-brand-500 flex items-center justify-center"><i data-lucide="zap" class="w-3.5 h-3.5 text-white"></i></div>
-        KING2MO <span class="text-brand-500">TECHNEWS</span>
+      <a href="#" class="flex items-center gap-2 font-bold text-lg group">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center shadow-md">
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-white"></i>
+        </div>
+        <div class="flex flex-col leading-none">
+          <span class="font-display font-black text-sm tracking-wide text-slate-900 dark:text-white uppercase">King2mo</span>
+          <span class="text-[8px] font-extrabold tracking-[0.25em] text-brand-500 mt-0.5">TECHNEWS</span>
+        </div>
       </a>
       <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Actu tech en direct — Numerama, The Verge & Hacker News.</p>
     </div>
