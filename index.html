@@ -429,12 +429,16 @@ async function loadNews(){
     let hero, articles, trends, stats;
     if(API){
       // ── Mode Backend ────────────────────────────────────
-      [hero,{articles,total:totalA},trends,stats]=await Promise.all([
+      const [heroData, articlesData, trendsData, statsData] = await Promise.all([
         fetch(`${API}/api/hero`).then(r=>r.json()),
-        fetch(`${API}/api/articles?limit=50`).then(r=>r.json()),
+        fetch(`${API}/api/articles?limit=200`).then(r=>r.json()),
         fetch(`${API}/api/trends`).then(r=>r.json()),
-        fetch(`${API}/api/stats`).then(r=>r.json()),
+        fetch(`${API}/api/stats`).then(r=>r.json())
       ]);
+      hero = heroData;
+      articles = articlesData.articles;
+      trends = trendsData;
+      stats = statsData;
       if(hero)hero.date=new Date(hero.pub_date);
       articles=articles.map(a=>({...a,date:new Date(a.pub_date)}));
       renderStats(stats.sources,stats.total_articles);
