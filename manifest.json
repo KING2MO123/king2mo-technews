@@ -1,0 +1,17 @@
+{
+  "name": "KING2MO TECHNEWS",
+  "short_name": "K2M Tech",
+  "description": "L'actu tech en direct, sans filtre.",
+  "start_url": "/king2mo-technews/",
+  "display": "standalone",
+  "background_color": "#080d1a",
+  "theme_color": "#06b6d4",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

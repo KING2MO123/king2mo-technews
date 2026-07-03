@@ -8,6 +8,10 @@
 <meta property="og:title" content="KING2MO TECHNEWS">
 <meta property="og:description" content="L'actu tech en direct, sans filtre.">
 <meta property="og:type" content="website">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#06b6d4">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <script>if(localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -151,10 +155,9 @@
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden xl:block"><div class="skeleton h-40 w-full"></div><div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-3/5 rounded"></div></div></div>
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden xl:block"><div class="skeleton h-40 w-full"></div><div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-2/3 rounded"></div></div></div>
       </div>
-      <div id="loadMoreWrap" class="mt-8 text-center hidden">
-        <button id="loadMoreBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-500 text-brand-500 font-semibold text-sm hover:bg-brand-500 hover:text-white transition-all">
-          <i data-lucide="chevrons-down" class="w-4 h-4"></i> Charger plus
-        </button>
+      <!-- Cible pour le Scroll Infini -->
+      <div id="scrollTarget" class="h-10 mt-5 w-full flex items-center justify-center">
+        <i data-lucide="loader-2" class="w-6 h-6 text-brand-500 spinning hidden" id="scrollSpinner"></i>
       </div>
     </section>
   </div>
@@ -259,6 +262,11 @@
 // En local avec backend: const API = 'http://localhost:3000';
 // Sans backend (GitHub Pages): const API = null;
 const API = 'https://king2mo-technews-api-production.up.railway.app'; // Production backend
+
+// PWA: Enregistrer le service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration failed', err));
+}
 
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const RSS_SOURCES = [
@@ -381,7 +389,29 @@ function applyFilter(){
   currentPage=1;renderGrid(filtered.slice(0,PAGE));
   const cnt=document.getElementById('articleCount');cnt.textContent=filtered.length+' article'+(filtered.length!==1?'s':'');cnt.classList.toggle('hidden',!filtered.length);
   document.getElementById('gridTitle').textContent=activeFilter==='all'?'Articles récents':`Articles — ${activeFilter}`;
-  document.getElementById('loadMoreWrap').classList.toggle('hidden',filtered.length<=PAGE);
+  checkScrollObserver();
+}
+
+// ── Infinite Scroll ────────────────────────────────────────
+const scrollObserver = new IntersectionObserver(entries => {
+  if(entries[0].isIntersecting && filtered.length > currentPage * PAGE) {
+    document.getElementById('scrollSpinner').classList.remove('hidden');
+    setTimeout(() => { // Petit délai pour fluidité
+      currentPage++;
+      const start = (currentPage - 1) * PAGE;
+      renderGrid(filtered.slice(start, start + PAGE), true);
+      document.getElementById('scrollSpinner').classList.add('hidden');
+      checkScrollObserver();
+    }, 300);
+  }
+}, { rootMargin: '200px' });
+
+function checkScrollObserver() {
+  const target = document.getElementById('scrollTarget');
+  scrollObserver.disconnect();
+  if (filtered.length > currentPage * PAGE) {
+    scrollObserver.observe(target);
+  }
 }
 
 function setStatus(ok,msg){
@@ -441,13 +471,6 @@ document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('cl
   document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===activeFilter));
   applyFilter();
 }));
-
-document.getElementById('loadMoreBtn').onclick=()=>{
-  currentPage++;
-  const start=(currentPage-1)*PAGE;
-  renderGrid(filtered.slice(start,start+PAGE),true);
-  document.getElementById('loadMoreWrap').classList.toggle('hidden',filtered.length<=currentPage*PAGE);
-};
 
 document.addEventListener('click',e=>{
   const card=e.target.closest('[data-article]');if(!card)return;
