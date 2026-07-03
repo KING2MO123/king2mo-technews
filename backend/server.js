@@ -14,8 +14,10 @@ app.use(express.json());
 app.use(express.static('../'));
 
 const RSS_SOURCES = [
-  { name: 'Numerama',  url: 'https://www.numerama.com/feed/',         tag: 'FR'   },
-  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', tag: 'Tech' },
+  { name: 'Numerama',  url: 'https://www.numerama.com/feed/',         tag: 'FR'      },
+  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', tag: 'Tech'    },
+  { name: 'JeuxVideo', url: 'https://www.jeuxvideo.com/rss/rss.xml',  tag: 'Gaming'  },
+  { name: 'AfriqueIT', url: 'https://afriqueitnews.com/feed/',        tag: 'Afrique' },
 ];
 
 const stripHtml = s => s ? s.replace(/<[^>]+>/g,'').trim() : '';

@@ -33,6 +33,8 @@
   .tag-FR{background:rgba(59,130,246,.12);color:#2563eb}.dark .tag-FR{color:#60a5fa}
   .tag-Tech{background:rgba(168,85,247,.12);color:#7c3aed}.dark .tag-Tech{color:#c084fc}
   .tag-HN{background:rgba(249,115,22,.12);color:#ea580c}.dark .tag-HN{color:#fb923c}
+  .tag-Gaming{background:rgba(16,185,129,.12);color:#059669}.dark .tag-Gaming{color:#34d399}
+  .tag-Afrique{background:rgba(234,179,8,.12);color:#ca8a04}.dark .tag-Afrique{color:#facc15}
   .tag-default{background:rgba(99,102,241,.12);color:#4f46e5}.dark .tag-default{color:#818cf8}
 </style>
 </head>
@@ -53,10 +55,12 @@
       <span class="hidden sm:inline">KING2MO</span><span class="text-brand-500">TECHNEWS</span>
     </a>
     <div class="hidden md:flex items-center gap-1.5 ml-3">
-      <button data-filter="all"  class="chip active px-3.5 py-1.5 rounded-full border border-transparent text-sm font-medium">Tout</button>
-      <button data-filter="FR"   class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🇫🇷 FR</button>
-      <button data-filter="Tech" class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🌐 Tech</button>
-      <button data-filter="HN"   class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🔥 HN</button>
+      <button data-filter="all"     class="chip active px-3.5 py-1.5 rounded-full border border-transparent text-sm font-medium">Tout</button>
+      <button data-filter="FR"      class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🇫🇷 FR</button>
+      <button data-filter="Afrique" class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🌍 Afrique</button>
+      <button data-filter="Gaming"  class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🎮 Gaming</button>
+      <button data-filter="Tech"    class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🌐 Tech</button>
+      <button data-filter="HN"      class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🔥 HN</button>
     </div>
     <div class="ml-auto flex items-center gap-2">
       <div class="relative hidden sm:block">
@@ -77,10 +81,12 @@
   </nav>
   <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 px-4 py-3 space-y-3">
     <div class="flex flex-wrap gap-2">
-      <button data-filter="all"  class="chip active px-3 py-1.5 rounded-full border border-transparent text-xs font-semibold">Tout</button>
-      <button data-filter="FR"   class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🇫🇷 FR</button>
-      <button data-filter="Tech" class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🌐 Tech</button>
-      <button data-filter="HN"   class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🔥 HN</button>
+      <button data-filter="all"     class="chip active px-3 py-1.5 rounded-full border border-transparent text-xs font-semibold">Tout</button>
+      <button data-filter="FR"      class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🇫🇷 FR</button>
+      <button data-filter="Afrique" class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🌍 Afrique</button>
+      <button data-filter="Gaming"  class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🎮 Gaming</button>
+      <button data-filter="Tech"    class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🌐 Tech</button>
+      <button data-filter="HN"      class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🔥 HN</button>
     </div>
     <div class="relative">
       <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
@@ -247,8 +253,10 @@ const API = 'https://king2mo-technews-api-production.up.railway.app'; // Product
 
 const PROXY = 'https://api.allorigins.win/raw?url=';
 const RSS_SOURCES = [
-  { name: 'Numerama',  url: 'https://www.numerama.com/feed/',         tag: 'FR'   },
-  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', tag: 'Tech' },
+  { name: 'Numerama',  url: 'https://www.numerama.com/feed/',         tag: 'FR'      },
+  { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', tag: 'Tech'    },
+  { name: 'JeuxVideo', url: 'https://www.jeuxvideo.com/rss/rss.xml',  tag: 'Gaming'  },
+  { name: 'AfriqueIT', url: 'https://afriqueitnews.com/feed/',        tag: 'Afrique' },
 ];
 const FALLBACK_IMGS = [
   'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
@@ -271,7 +279,7 @@ const timeAgo = d => {
   if(m<1440)return`Il y a ${Math.round(m/60)} h`;
   return d.toLocaleDateString('fr-CA',{day:'numeric',month:'short'});
 };
-const tagCls = t => ({FR:'tag-FR',Tech:'tag-Tech',HN:'tag-HN'}[t]||'tag-default');
+const tagCls = t => ({FR:'tag-FR',Tech:'tag-Tech',HN:'tag-HN',Gaming:'tag-Gaming',Afrique:'tag-Afrique'}[t]||'tag-default');
 
 // ── Toast ──────────────────────────────────────────────────
 let tt;
