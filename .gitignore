@@ -1,0 +1,18 @@
+# Dépendances Node (si build futur)
+node_modules/
+.env
+.env.local
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

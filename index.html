@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KING2MO TECHNEWS — L'actu tech en direct</title>
+<meta name="description" content="Agrégateur d'actualités tech en temps réel : Numerama, The Verge, Hacker News. IA, gaming, business tech et nouveautés.">
+<meta property="og:title" content="KING2MO TECHNEWS — L'actu tech en direct">
+<meta property="og:description" content="Actualités tech en direct, sans filtre, 24h/24.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#6366f1">
+
+<!-- Dark mode avant le rendu -->
+<script>
+  if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  }
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          display: ['Playfair Display', 'Georgia', 'serif']
+        },
+        colors: {
+          brand: { 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+        }
+      }
+    }
+  }
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  .dark .skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #273349 50%, #1e293b 75%);
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* Card hover */
+  .card-hover { transition: transform .22s ease, box-shadow .22s ease; }
+  .card-hover:hover { transform: translateY(-5px); }
+  .card-hover:hover { box-shadow: 0 18px 40px rgba(99,102,241,.14); }
+  .dark .card-hover:hover { box-shadow: 0 18px 40px rgba(99,102,241,.28); }
+
+  /* Pulse dot */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+  .pulse-dot { animation: pulse 2s infinite; }
+
+  /* Spin animation for refresh */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinning { animation: spin 0.8s linear infinite; }
+
+  /* Slide up */
+  @keyframes slideUp { from { opacity:0; transform:translateY(14px) } to { opacity:1; transform:translateY(0) } }
+  .slide-up { animation: slideUp .35s ease both; }
+
+  /* Filter chip */
+  .chip { transition: all .18s ease; }
+  .chip.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .chip:not(.active):hover { border-color: #6366f1; color: #6366f1; }
+  .dark .chip:not(.active):hover { color: #818cf8; border-color: #818cf8; }
+
+  /* Hero image zoom */
+  #heroImg { transition: transform .6s ease; }
+  #heroSection:hover #heroImg { transform: scale(1.04); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 9px; }
+
+  /* Modal fade */
+  @keyframes fadeIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+  .modal-enter { animation: fadeIn .2s ease; }
+
+  /* Tag badge colors */
+  .tag-FR { background:rgba(59,130,246,.12); color:#2563eb; }
+  .dark .tag-FR { color:#60a5fa; }
+  .tag-Tech { background:rgba(168,85,247,.12); color:#7c3aed; }
+  .dark .tag-Tech { color:#c084fc; }
+  .tag-HN { background:rgba(249,115,22,.12); color:#ea580c; }
+  .dark .tag-HN { color:#fb923c; }
+  .tag-default { background:rgba(99,102,241,.12); color:#4f46e5; }
+  .dark .tag-default { color:#818cf8; }
+
+  /* Progress bar */
+  .source-bar { transition: width .7s cubic-bezier(.4,0,.2,1); }
+
+  /* Toast */
+  @keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .toast-show { animation: toastIn .25s ease; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#080d1a] dark:text-slate-100 transition-colors duration-300">
+
+<!-- ===================== TOAST ===================== -->
+<div id="toast" class="fixed bottom-5 right-5 z-[60] hidden items-center gap-3 bg-slate-900 dark:bg-slate-800 text-white px-4 py-3 rounded-2xl shadow-2xl text-sm font-medium max-w-xs border border-slate-700">
+  <i data-lucide="bell" class="w-4 h-4 text-brand-400 shrink-0"></i>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- ===================== NAVBAR ===================== -->
+<header class="sticky top-0 z-40 backdrop-blur-xl bg-white/85 dark:bg-[#080d1a]/90 border-b border-slate-200 dark:border-slate-800/70 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2 font-bold text-xl shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
+        <i data-lucide="zap" class="w-4 h-4 text-white"></i>
+      </div>
+      <span class="hidden sm:inline">KING2MO</span><span class="text-brand-500">TECHNEWS</span>
+    </a>
+
+    <!-- Filter chips — desktop -->
+    <div class="hidden md:flex items-center gap-1.5 ml-3">
+      <button data-filter="all"  class="chip active px-3.5 py-1.5 rounded-full border border-transparent text-sm font-medium">Tout</button>
+      <button data-filter="FR"   class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🇫🇷 FR</button>
+      <button data-filter="Tech" class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🌐 Tech</button>
+      <button data-filter="HN"   class="chip px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-sm font-medium">🔥 HN</button>
+    </div>
+
+    <!-- Right controls -->
+    <div class="ml-auto flex items-center gap-2">
+      <!-- Search -->
+      <div class="relative hidden sm:block">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+        <input id="searchInput" type="search" placeholder="Rechercher…"
+          class="pl-9 pr-8 py-2 w-44 lg:w-60 rounded-full text-sm bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition">
+        <button id="searchClear" class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none transition-opacity" aria-label="Effacer">
+          <i data-lucide="x" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+      </div>
+      <button id="refreshBtn" aria-label="Actualiser" title="Actualiser les news"
+        class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="refresh-cw" class="w-5 h-5" id="refreshIcon"></i>
+      </button>
+      <button id="darkToggle" aria-label="Basculer le thème"
+        class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+        <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+      </button>
+      <button id="menuBtn" class="md:hidden p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Menu">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 px-4 py-3 space-y-3">
+    <div class="flex flex-wrap gap-2">
+      <button data-filter="all"  class="chip active px-3 py-1.5 rounded-full border border-transparent text-xs font-semibold">Tout</button>
+      <button data-filter="FR"   class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🇫🇷 FR</button>
+      <button data-filter="Tech" class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🌐 Tech</button>
+      <button data-filter="HN"   class="chip px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-semibold">🔥 HN</button>
+    </div>
+    <div class="relative">
+      <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+      <input id="searchMob" type="search" placeholder="Rechercher…"
+        class="pl-9 w-full py-2 rounded-full text-sm bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-brand-500 focus:outline-none">
+    </div>
+  </div>
+</header>
+
+<!-- Live status bar -->
+<div class="max-w-7xl mx-auto px-4 pt-3 pb-1">
+  <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+    <span class="w-2 h-2 rounded-full bg-amber-400 pulse-dot shrink-0" id="liveDot"></span>
+    <span id="liveStatus">Chargement des dernières actus…</span>
+    <span id="updateTime" class="ml-auto hidden sm:block font-medium"></span>
+  </div>
+</div>
+
+<!-- ===================== MAIN ===================== -->
+<main class="max-w-7xl mx-auto px-4 py-5 grid lg:grid-cols-[1fr_320px] gap-8">
+  <div>
+
+    <!-- HERO -->
+    <section id="heroSection" class="relative rounded-2xl overflow-hidden cursor-pointer group" data-article="hero">
+      <!-- Skeleton -->
+      <div id="heroSkel" class="skeleton w-full h-72 md:h-96 rounded-2xl"></div>
+      <img id="heroImg" src="" alt="" class="hidden w-full h-72 md:h-96 object-cover">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none"></div>
+      <div class="absolute bottom-0 w-full p-6 md:p-8 text-white">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="inline-flex items-center gap-1 bg-red-600 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+            <i data-lucide="radio" class="w-3 h-3"></i> À la une
+          </span>
+          <span id="heroSourceBadge" class="text-xs bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full hidden"></span>
+        </div>
+        <h1 id="heroTitle" class="font-display text-2xl md:text-4xl font-bold leading-tight max-w-3xl">Chargement…</h1>
+        <p id="heroSummary" class="mt-2 max-w-2xl text-sm md:text-base text-slate-200 line-clamp-2"></p>
+        <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+          <span class="flex items-center gap-1"><i data-lucide="globe" class="w-3.5 h-3.5"></i><span id="heroSource"></span></span>
+          <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i><span id="heroDate"></span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARTICLES GRID -->
+    <section class="mt-10">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <i data-lucide="newspaper" class="w-5 h-5 text-brand-500"></i>
+          <span id="gridTitle">Articles récents</span>
+        </h2>
+        <span id="articleCount" class="text-xs text-slate-400 font-medium hidden"></span>
+      </div>
+
+      <!-- No results -->
+      <div id="noResults" class="hidden text-center py-16 text-slate-400">
+        <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-3 opacity-40"></i>
+        <p class="text-sm">Aucun article trouvé pour cette recherche.</p>
+      </div>
+
+      <!-- Grid -->
+      <div id="articleGrid" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        <!-- Skeleton cards -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-3/4 rounded"></div></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-2/3 rounded"></div></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-4/5 rounded"></div></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden sm:block">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-1/2 rounded"></div></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden xl:block">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-3/5 rounded"></div></div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden xl:block">
+          <div class="skeleton h-40 w-full"></div>
+          <div class="p-5 space-y-3"><div class="skeleton h-3 w-14 rounded-full"></div><div class="skeleton h-4 w-full rounded"></div><div class="skeleton h-4 w-2/3 rounded"></div></div>
+        </div>
+      </div>
+
+      <!-- Load more -->
+      <div id="loadMoreWrap" class="mt-8 text-center hidden">
+        <button id="loadMoreBtn"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-500 text-brand-500 font-semibold text-sm hover:bg-brand-500 hover:text-white transition-all duration-200 hover:shadow-lg hover:shadow-brand-500/25">
+          <i data-lucide="chevrons-down" class="w-4 h-4"></i> Charger plus d'articles
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="space-y-6">
+
+    <!-- Top Hacker News -->
+    <section class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+      <h3 class="font-bold flex items-center gap-2 mb-4 text-sm uppercase tracking-wide text-slate-600 dark:text-slate-400">
+        <i data-lucide="trending-up" class="w-4 h-4 text-brand-500"></i> Top Hacker News
+      </h3>
+      <ol id="trendList" class="space-y-3">
+        <li class="skeleton h-4 rounded w-full"></li>
+        <li class="skeleton h-4 rounded w-5/6 mt-3"></li>
+        <li class="skeleton h-4 rounded w-4/5 mt-3"></li>
+        <li class="skeleton h-4 rounded w-full mt-3"></li>
+        <li class="skeleton h-4 rounded w-3/4 mt-3"></li>
+      </ol>
+    </section>
+
+    <!-- Stats sources -->
+    <section id="statsBox" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 hidden">
+      <h3 class="font-bold flex items-center gap-2 mb-4 text-sm uppercase tracking-wide text-slate-600 dark:text-slate-400">
+        <i data-lucide="bar-chart-2" class="w-4 h-4 text-brand-500"></i> Sources actives
+      </h3>
+      <div id="statsList" class="space-y-3"></div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-brand-600 via-indigo-600 to-purple-700 rounded-2xl p-5 text-white shadow-xl shadow-brand-500/20">
+      <div class="absolute -top-8 -right-8 w-28 h-28 bg-white/5 rounded-full"></div>
+      <div class="absolute -bottom-5 -left-5 w-20 h-20 bg-white/5 rounded-full"></div>
+      <h3 class="font-bold flex items-center gap-2 mb-1 relative text-base">
+        <i data-lucide="mail" class="w-5 h-5"></i> Newsletter
+      </h3>
+      <p class="text-sm text-indigo-100 mb-4 relative">L'essentiel de la tech, chaque matin. Zéro spam, désinscription en 1 clic.</p>
+      <div class="space-y-2 relative">
+        <input id="nlEmail" type="email" placeholder="votre@email.com"
+          class="w-full px-4 py-2.5 rounded-xl text-sm text-slate-900 bg-white/95 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-white/60 transition">
+        <button id="nlBtn"
+          class="w-full py-2.5 rounded-xl bg-slate-950/40 hover:bg-slate-950/60 font-semibold text-sm transition-colors">
+          S'abonner →
+        </button>
+        <p id="nlMsg" class="text-xs text-indigo-100 hidden"></p>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="mt-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+  <div class="max-w-7xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-3">
+    <div>
+      <a href="#" class="flex items-center gap-2 font-bold text-lg">
+        <div class="w-7 h-7 rounded-md bg-brand-500 flex items-center justify-center">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-white"></i>
+        </div>
+        KING2MO <span class="text-brand-500">TECHNEWS</span>
+      </a>
+      <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Actualité technologique en direct — agrégée depuis Numerama, The Verge et Hacker News.</p>
+      <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">100 % frontend · open source · zéro tracking</p>
+    </div>
+    <div>
+      <h4 class="font-semibold mb-3 text-xs uppercase tracking-wider text-slate-500">Légal</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-brand-500 transition-colors">Mentions légales</a></li>
+        <li><a href="#" class="hover:text-brand-500 transition-colors">Politique de confidentialité</a></li>
+        <li><a href="#" class="hover:text-brand-500 transition-colors">Conditions d'utilisation</a></li>
+        <li><a href="#" class="hover:text-brand-500 transition-colors">Gestion des cookies</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-semibold mb-3 text-xs uppercase tracking-wider text-slate-500">Suivez-nous</h4>
+      <div class="flex gap-3">
+        <a href="#" aria-label="X / Twitter" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-brand-500/30"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+        <a href="#" aria-label="YouTube" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-brand-500/30"><i data-lucide="youtube" class="w-4 h-4"></i></a>
+        <a href="#" aria-label="LinkedIn" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-brand-500/30"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+        <a href="#" aria-label="GitHub" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-brand-500/30"><i data-lucide="github" class="w-4 h-4"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-xs text-slate-400">
+    © 2026 KING2MO TECHNEWS · Fait avec ❤️ — 100 % frontend
+  </div>
+</footer>
+
+<!-- ===================== MODALE ===================== -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div id="modalOverlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="modal-enter relative bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <img id="modalImg" src="" alt="" class="w-full h-52 object-cover rounded-t-2xl">
+    <button id="modalClose" aria-label="Fermer" class="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>
+    <div class="p-6">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <span id="modalTag" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-brand-500/10 text-brand-500"></span>
+        <span id="modalDate" class="text-xs text-slate-400"></span>
+      </div>
+      <h2 id="modalTitle" class="font-display text-xl md:text-2xl font-bold leading-snug"></h2>
+      <p id="modalBody" class="mt-4 text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base"></p>
+      <a id="modalLink" href="#" target="_blank" rel="noopener noreferrer"
+        class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm transition-colors shadow-lg shadow-brand-500/25">
+        Lire l'article complet <i data-lucide="external-link" class="w-4 h-4"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPT ===================== -->
+<script>
+// =====================================================
+//  KING2MO TECHNEWS — Agrégateur live v2.0
+//  Sources : Numerama (FR), The Verge, Hacker News
+//  100 % frontend | refresh auto toutes les 10 min
+// =====================================================
+
+const REFRESH_MIN = 10;
+const PAGE_SIZE = 6;
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+const RSS_SOURCES = [
+  { name: 'Numerama',   url: 'https://www.numerama.com/feed/',            tag: 'FR'   },
+  { name: 'The Verge',  url: 'https://www.theverge.com/rss/index.xml',    tag: 'Tech' },
+];
+
+const FALLBACK_IMGS = [
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80',
+  'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80',
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
+  'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80',
+  'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&q=80',
+  'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
+  'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80',
+];
+
+// ---------- State ----------
+let allArticles    = [];
+let filteredArts   = [];
+let heroArticle    = null;
+let activeFilter   = 'all';
+let currentPage    = 1;
+let isRefreshing   = false;
+
+// ---------- Helpers ----------
+const stripHtml = s => { const d = document.createElement('div'); d.innerHTML = s||''; return (d.textContent||'').trim(); };
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fallback = i => FALLBACK_IMGS[Math.abs(i) % FALLBACK_IMGS.length];
+
+function timeAgo(date) {
+  const diff = (Date.now() - date.getTime()) / 60000;
+  if (diff < 1)    return 'À l\'instant';
+  if (diff < 60)   return `Il y a ${Math.round(diff)} min`;
+  if (diff < 1440) return `Il y a ${Math.round(diff/60)} h`;
+  return date.toLocaleDateString('fr-CA', { day:'numeric', month:'short' });
+}
+
+function tagClass(tag) {
+  const map = { FR:'tag-FR', Tech:'tag-Tech', HN:'tag-HN' };
+  return map[tag] || 'tag-default';
+}
+
+// ---------- Toast ----------
+let toastTimer;
+function showToast(msg, ms = 3200) {
+  const el = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  el.classList.remove('hidden');
+  el.classList.add('flex', 'toast-show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.add('hidden');
+    el.classList.remove('flex','toast-show');
+  }, ms);
+}
+
+// ---------- Fetch RSS ----------
+async function fetchRss(src) {
+  const res = await fetch(PROXY + encodeURIComponent(src.url), { cache:'no-store' });
+  if (!res.ok) throw new Error(src.name + ' HTTP ' + res.status);
+  const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
+  const items = [...xml.querySelectorAll('item, entry')].slice(0, 14);
+  return items.map(it => {
+    const get = t => it.querySelector(t)?.textContent || '';
+    let link = get('link') || it.querySelector('link')?.getAttribute('href') || '';
+    let img = it.getElementsByTagName('media:content')[0]?.getAttribute('url')
+           || it.querySelector('enclosure')?.getAttribute('url') || '';
+    if (!img) {
+      const html = get('content\\:encoded') || get('content') || get('description');
+      const m = html.match(/<img[^>]+src=["']([^"']+)/i);
+      if (m) img = m[1];
+    }
+    return {
+      title:   stripHtml(get('title')),
+      summary: stripHtml(get('description') || get('summary')).slice(0, 320),
+      url:     link.trim(),
+      img,
+      source:  src.name,
+      tag:     src.tag,
+      date:    new Date(get('pubDate') || get('updated') || get('published') || Date.now())
+    };
+  }).filter(a => a.title && a.url);
+}
+
+// ---------- Fetch Hacker News ----------
+async function fetchHN() {
+  const res = await fetch('https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=15', { cache:'no-store' });
+  if (!res.ok) throw new Error('HN HTTP ' + res.status);
+  const data = await res.json();
+  return data.hits.map(h => ({
+    title:   h.title,
+    summary: `${h.points} points · ${h.num_comments} commentaires · Hacker News`,
+    url:     h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,
+    img:     '',
+    source:  'Hacker News',
+    tag:     'HN',
+    points:  h.points,
+    date:    new Date(h.created_at)
+  }));
+}
+
+// ---------- Render Hero ----------
+function renderHero(a) {
+  if (!a) return;
+  heroArticle = a;
+  window.__hero = a;
+  const imgEl  = document.getElementById('heroImg');
+  const skelEl = document.getElementById('heroSkel');
+  imgEl.src = a.img || fallback(0);
+  imgEl.onload  = () => { imgEl.classList.remove('hidden'); skelEl.classList.add('hidden'); };
+  imgEl.onerror = () => { imgEl.src = fallback(0); imgEl.classList.remove('hidden'); skelEl.classList.add('hidden'); };
+  document.getElementById('heroTitle').textContent   = a.title;
+  document.getElementById('heroSummary').textContent = a.summary;
+  document.getElementById('heroSource').textContent  = a.source;
+  document.getElementById('heroDate').textContent    = timeAgo(a.date);
+  const badge = document.getElementById('heroSourceBadge');
+  badge.textContent = a.source;
+  badge.classList.remove('hidden');
+}
+
+// ---------- Render Grid ----------
+function renderGrid(list, append = false) {
+  const grid   = document.getElementById('articleGrid');
+  const noRes  = document.getElementById('noResults');
+
+  if (!append) {
+    grid.innerHTML = '';
+    noRes.classList.add('hidden');
+  }
+
+  if (!list.length && !append) {
+    noRes.classList.remove('hidden');
+    document.getElementById('loadMoreWrap').classList.add('hidden');
+    return;
+  }
+
+  const html = list.map((a, i) => {
+    const gi  = allArticles.indexOf(a);
+    const fb  = fallback(gi + 1);
+    const tc  = tagClass(a.tag);
+    const delay = (i % PAGE_SIZE) * 55;
+    return `
+    <article class="card-hover bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm cursor-pointer slide-up" 
+             data-article="${gi}" style="animation-delay:${delay}ms">
+      <div class="overflow-hidden h-40 relative">
+        <img src="${esc(a.img||fb)}" alt="" loading="lazy" class="w-full h-40 object-cover transition-transform duration-500 hover:scale-105"
+             onerror="this.src='${fb}'">
+        <span class="absolute top-2.5 left-2.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${tc} backdrop-blur-sm">${esc(a.tag)}</span>
+      </div>
+      <div class="p-4">
+        <p class="text-[11px] text-slate-400 font-medium mb-1">${esc(a.source)}</p>
+        <h3 class="font-bold leading-snug line-clamp-2 text-sm">${esc(a.title)}</h3>
+        <div class="mt-3 flex items-center justify-between">
+          <span class="text-xs text-slate-400 flex items-center gap-1">
+            <i data-lucide="clock" class="w-3 h-3"></i>${timeAgo(a.date)}
+          </span>
+          <button class="text-xs font-semibold text-brand-500 flex items-center gap-1 hover:gap-2 transition-all">
+            Lire <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  if (append) grid.insertAdjacentHTML('beforeend', html);
+  else        grid.innerHTML = html;
+
+  lucide.createIcons();
+}
+
+// ---------- Render Trends ----------
+function renderTrends(hn) {
+  document.getElementById('trendList').innerHTML = hn.slice(0,5).map((a,i) => `
+    <li class="flex gap-3 items-start">
+      <span class="text-brand-500 font-bold text-sm w-5 shrink-0 mt-0.5">${i+1}</span>
+      <a href="${esc(a.url)}" target="_blank" rel="noopener"
+         class="text-sm leading-snug line-clamp-2 hover:text-brand-500 transition-colors">${esc(a.title)}</a>
+    </li>
+  `).join('');
+}
+
+// ---------- Render Stats ----------
+function renderStats() {
+  const box = document.getElementById('statsBox');
+  const list = document.getElementById('statsList');
+  const counts = {};
+  allArticles.forEach(a => { counts[a.source] = (counts[a.source]||0) + 1; });
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  list.innerHTML = entries.map(([src, n]) => `
+    <div>
+      <div class="flex justify-between text-xs mb-1">
+        <span class="text-slate-600 dark:text-slate-400 font-medium">${esc(src)}</span>
+        <span class="font-semibold text-brand-500">${n}</span>
+      </div>
+      <div class="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div class="source-bar h-full bg-gradient-to-r from-brand-500 to-indigo-400 rounded-full" style="width:${Math.round(n/allArticles.length*100)}%"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---------- Filter & Search ----------
+function applyFilter() {
+  const q = (
+    document.getElementById('searchInput').value ||
+    document.getElementById('searchMob')?.value || ''
+  ).toLowerCase().trim();
+
+  filteredArts = allArticles.filter(a => {
+    const matchTag = activeFilter === 'all' || a.tag === activeFilter;
+    const matchQ   = !q || a.title.toLowerCase().includes(q) || a.source.toLowerCase().includes(q);
+    return matchTag && matchQ;
+  });
+
+  currentPage = 1;
+  renderGrid(filteredArts.slice(0, PAGE_SIZE));
+  updateMeta();
+  updateLoadMore();
+}
+
+function updateMeta() {
+  const el = document.getElementById('articleCount');
+  el.textContent = filteredArts.length + ' article' + (filteredArts.length!==1?'s':'');
+  el.classList.toggle('hidden', filteredArts.length === 0);
+  document.getElementById('gridTitle').textContent =
+    activeFilter === 'all' ? 'Articles récents' : `Articles — ${activeFilter}`;
+}
+
+function updateLoadMore() {
+  const hasMore = filteredArts.length > currentPage * PAGE_SIZE;
+  document.getElementById('loadMoreWrap').classList.toggle('hidden', !hasMore);
+}
+
+// ---------- Status ----------
+function setStatus(ok, msg) {
+  const dot = document.getElementById('liveDot');
+  dot.className = 'w-2 h-2 rounded-full pulse-dot shrink-0 ' + (ok ? 'bg-emerald-400' : 'bg-red-400');
+  document.getElementById('liveStatus').textContent = msg;
+}
+
+// ---------- Load News ----------
+async function loadNews() {
+  if (isRefreshing) return;
+  isRefreshing = true;
+  document.getElementById('refreshIcon').classList.add('spinning');
+  setStatus(true, 'Actualisation en cours…');
+
+  const results = await Promise.allSettled([fetchHN(), ...RSS_SOURCES.map(fetchRss)]);
+
+  document.getElementById('refreshIcon').classList.remove('spinning');
+  isRefreshing = false;
+
+  const hn     = results[0].status === 'fulfilled' ? results[0].value : [];
+  const rss    = results.slice(1).flatMap(r => r.status==='fulfilled' ? r.value : []);
+  const failed = results.filter(r => r.status==='rejected').length;
+
+  if (!hn.length && !rss.length) {
+    setStatus(false, 'Sources inaccessibles. Nouvel essai dans ' + REFRESH_MIN + ' min.');
+    showToast('⚠️ Impossible de joindre les sources.');
+    document.getElementById('articleGrid').innerHTML =
+      '<p class="col-span-full text-center text-slate-400 py-16 text-sm">Aucune donnée disponible.</p>';
+    return;
+  }
+
+  const sorted = [...rss].sort((a,b) => b.date - a.date);
+  const hero   = sorted.find(a => a.img) || sorted[0] || hn[0];
+  allArticles  = [...rss, ...hn].filter(a => a !== hero).sort((a,b) => b.date - a.date);
+
+  renderHero(hero);
+  applyFilter();
+  renderTrends(hn.sort((a,b) => (b.points||0)-(a.points||0)));
+  renderStats();
+
+  const now = new Date().toLocaleTimeString('fr-CA', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('updateTime').textContent = 'Mis à jour à ' + now;
+  setStatus(true, failed
+    ? `En direct · ${failed} source(s) indisponible(s) · maj auto ${REFRESH_MIN} min`
+    : `En direct · Numerama, The Verge, Hacker News · maj auto ${REFRESH_MIN} min`);
+
+  showToast(`✓ ${allArticles.length + (hero?1:0)} articles chargés`);
+}
+
+// ---------- Events ----------
+
+// Dark mode
+document.getElementById('darkToggle').addEventListener('click', () => {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+});
+
+// Mobile menu toggle
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('hidden');
+});
+
+// Refresh button
+document.getElementById('refreshBtn').addEventListener('click', loadNews);
+
+// Search (desktop)
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value;
+  const btn = document.getElementById('searchClear');
+  btn.style.opacity = q ? '1' : '0';
+  btn.style.pointerEvents = q ? 'auto' : 'none';
+  applyFilter();
+});
+
+// Search clear
+document.getElementById('searchClear').addEventListener('click', () => {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.opacity = '0';
+  document.getElementById('searchClear').style.pointerEvents = 'none';
+  applyFilter();
+});
+
+// Search (mobile)
+document.getElementById('searchMob')?.addEventListener('input', applyFilter);
+
+// Filter chips (tous les boutons data-filter)
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeFilter = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => {
+      if (b.dataset.filter === activeFilter) b.classList.add('active');
+      else                                   b.classList.remove('active');
+    });
+    applyFilter();
+  });
+});
+
+// Load more
+document.getElementById('loadMoreBtn').addEventListener('click', () => {
+  currentPage++;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  renderGrid(filteredArts.slice(start, start + PAGE_SIZE), true);
+  updateLoadMore();
+});
+
+// Modal — open
+document.addEventListener('click', e => {
+  const card = e.target.closest('[data-article]');
+  if (!card) return;
+  const id = card.dataset.article;
+  const a  = id === 'hero' ? window.__hero : allArticles[parseInt(id)];
+  if (!a) return;
+
+  document.getElementById('modalImg').src          = a.img || fallback(0);
+  document.getElementById('modalTag').textContent  = a.source;
+  document.getElementById('modalDate').textContent = timeAgo(a.date);
+  document.getElementById('modalTitle').textContent= a.title;
+  document.getElementById('modalBody').textContent = a.summary || 'Consultez l\'article original pour plus de détails.';
+  document.getElementById('modalLink').href        = a.url;
+
+  const modal = document.getElementById('modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+  lucide.createIcons();
+});
+
+// Modal — close
+function closeModal() {
+  const modal = document.getElementById('modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+document.getElementById('modalClose').addEventListener('click', e => { e.stopPropagation(); closeModal(); });
+document.getElementById('modalOverlay').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Newsletter
+document.getElementById('nlBtn').addEventListener('click', () => {
+  const email = document.getElementById('nlEmail').value.trim();
+  const msg   = document.getElementById('nlMsg');
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = '✓ Inscription confirmée. À demain !';
+    document.getElementById('nlEmail').value = '';
+    showToast('✓ Newsletter — inscription confirmée !');
+  } else {
+    msg.textContent = '✗ Adresse e-mail invalide.';
+  }
+  msg.classList.remove('hidden');
+});
+
+// ---------- Init ----------
+lucide.createIcons();
+loadNews();
+setInterval(loadNews, REFRESH_MIN * 60 * 1000);
+</script>
+</body>
+</html>
