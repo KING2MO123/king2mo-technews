@@ -17,7 +17,9 @@ const RSS_SOURCES = [
   { name: 'Numerama',  url: 'https://www.numerama.com/feed/',         tag: 'FR'      },
   { name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml', tag: 'Tech'    },
   { name: 'JeuxVideo', url: 'https://www.jeuxvideo.com/rss/rss.xml',  tag: 'Gaming'  },
-  { name: 'DigitalBiz', url: 'https://www.digitalbusiness.africa/feed/',    tag: 'Afrique' },
+  { name: 'Tech CI', url: 'https://news.google.com/rss/search?q=technologie+OR+startup+OR+num%C3%A9rique+C%C3%B4te+d%27Ivoire&hl=fr&gl=FR&ceid=FR:fr', tag: 'Afrique' },
+  { name: 'Tech AO', url: 'https://news.google.com/rss/search?q=technologie+OR+startup+Afrique+de+l%27Ouest&hl=fr&gl=FR&ceid=FR:fr', tag: 'Afrique' },
+  { name: 'DigitalBiz', url: 'https://www.digitalbusiness.africa/feed/', tag: 'Afrique' },
 ];
 
 const stripHtml = s => s ? s.replace(/<[^>]+>/g,'').trim() : '';
