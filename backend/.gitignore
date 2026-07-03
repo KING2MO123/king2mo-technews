@@ -1,0 +1,4 @@
+node_modules/
+technews.json
+*.log
+.env
